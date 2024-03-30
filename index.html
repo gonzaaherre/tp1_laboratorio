@@ -1,0 +1,48 @@
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Login</title>
+<script>
+    
+function realizarLogin() {
+  var usuario = document.getElementById('usuario').value;
+  var password = document.getElementById('password').value;
+  var a = new XMLHttpRequest();
+  a.onreadystatechange = function() {
+    if (a.readyState == 4 && a.status == 200) {
+      var respuesta = JSON.parse(a.responseText);
+      if (respuesta.respuesta === "OK") {
+        window.location.href = 'lista.html';
+      } else {
+        alert(respuesta.mje);
+      }
+    }
+  };
+  a.open('GET', 'http://168.194.207.98:8081/tp/login.php?user=' + usuario + '&pass=' + password, true);
+  a.send();
+}
+
+
+
+
+
+
+</script>
+</head>
+<body>
+<form onsubmit="realizarLogin(); return false;">
+  <label for="usuario">Usuario:</label>
+  <input type="text" id="usuario" name="usuario">
+  <label for="password">Password:</label>
+  <input type="password" id="password" name="password">
+  <input type="submit" value="Ingresar">
+</form>
+<input type="text" id="busquedaUsuario" placeholder="Buscar Usuario">
+<button onclick="buscarUsuario()">Buscar</button>
+<table id="tablaUsuarios">
+  <!-- Los usuarios se cargarán aquí -->
+</table>
+</body>
+</html>

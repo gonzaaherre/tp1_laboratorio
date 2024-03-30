@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Usuarios</title>
+    <style>
+        /* Estilos para las filas de la tabla */
+         tr {
+            background-color:#fd9f8b ; /* Por defecto, filas no bloqueadas */
+        }
+
+        /* Estilos para las filas con usuarios bloqueados */
+        tr.bloqueado {
+            background-color:   #cef8c6; /* Filas con usuarios bloqueados */
+        }
+    </style>
+
+    <script>
+        function cargarUsuarios() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var usuarios = JSON.parse(xhr.responseText);
+                    actualizarTabla(usuarios); // Llama a la función para actualizar la tabla
+                }
+            };
+            xhr.open('GET', 'http://168.194.207.98:8081/tp/lista.php?action=BUSCAR', true);
+            xhr.send();
+        }
+
+        function buscarUsuario() {
+            var inputUsuario = document.getElementById('busquedaUsuario').value;
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var respuesta = JSON.parse(xhr.responseText);
+                    actualizarTabla(respuesta); // Llama a la función para actualizar la tabla
+                }
+            };
+            xhr.open('GET', 'http://168.194.207.98:8081/tp/lista.php?action=BUSCAR&usuario=' + inputUsuario, true);
+            xhr.send();
+        }
+
+        function bloquearUsuario(idUsuario, estado) {
+            fetch(`http://168.194.207.98:8081/tp/lista.php?action=BLOQUEAR&idUser=${idUsuario}&estado=${estado}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.respuesta === 'OK') {
+                      console.log('a')
+                        buscarUsuario(); 
+                    } else {
+                      's'
+                        alert('Error al bloquear/desbloquear usuario.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+
+        function actualizarTabla(usuarios) {
+    var tabla = document.getElementById('tablaUsuarios').getElementsByTagName('tbody')[0];
+    tabla.innerHTML = ''; // Limpiar la tabla antes de agregar nuevos resultados
+    if (usuarios.length > 0) {
+        usuarios.forEach(function(usuario) {
+            var fila = document.createElement('tr');
+            fila.innerHTML = `<td>${usuario.id}</td><td>${usuario.usuario}</td><td>${usuario.bloqueado}</td><td>${usuario.apellido}</td><td>${usuario.nombre}</td>`;
+            
+            // Verifica si el usuario está bloqueado o no para aplicar el estilo correspondiente
+            if (usuario.bloqueado === 'Y') {
+                fila.classList.add('bloqueado');
+            }
+
+            // Agregar las celdas para las acciones de bloqueo y desbloqueo
+            var celdaAcciones = document.createElement('td');
+            var botonBloquear = crearBoton('N', usuario.id);
+            var botonDesbloquear = crearBoton('Y', usuario.id);
+            celdaAcciones.appendChild(botonBloquear);
+            celdaAcciones.appendChild(botonDesbloquear);
+
+            fila.appendChild(celdaAcciones);
+            tabla.appendChild(fila);
+        });
+    } else {
+        var fila = document.createElement('tr');
+        fila.innerHTML = '<td colspan="7">No se encontraron usuarios.</td>';
+        tabla.appendChild(fila);
+    }
+}
+
+
+        function crearBoton(estado, idUsuario) {
+            var boton = document.createElement('button');
+            boton.textContent = estado === 'N' ? 'Bloquear' : 'Desbloquear';
+            boton.onclick = function() {
+              bloquearUsuario(idUsuario, estado);
+            };
+            return boton;
+        }
+
+        // Se llama a cargarUsuarios() cuando la página se carga por primera vez
+        window.onload = cargarUsuarios;
+    </script>
+</head>
+<body>
+    <input type="text" id="busquedaUsuario" placeholder="Buscar Usuario">
+    <button onclick="buscarUsuario()">Buscar</button>
+    <table id="tablaUsuarios">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Usuario</th>
+                <th>Bloqueado</th>
+                <th>Apellido</th>
+                <th>Nombre</th>
+                
+                <th colspan="2">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los usuarios se cargarán aquí -->
+        </tbody>
+    </table>
+</body>
+</html>
